@@ -4,7 +4,7 @@
 //
 //   File Description:
 //
-//     Handle quizz setup and communication with the server
+//     Handle quiz setup and communication with the server
 //
 //
 //
@@ -28,48 +28,48 @@ import Animate
 //
 // ============================================================================
 
-MCQ_quizz Question:text, Img:text, Body ->
+quiz Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
 //    Setup a new MultiChoice Question with an image in the question
 // ----------------------------------------------------------------------------
     openText := "false"
-    quizz Question, Img, Body
+    quiz Question, Img, Body
 
-MCQ_quizz Question:text, Body ->
+quiz Question:text, Body ->
 // ----------------------------------------------------------------------------
 //    Setup a new MultiChoice Question without image in the question
 // ----------------------------------------------------------------------------
-    MCQ_quizz Question, "", Body
+    quiz Question, "", Body
 
-OTQ_quizz  Question:text, Img:text, Body ->
+open_text_question  Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
 //    Setup a new Open Text Question with an image in the question
 // ----------------------------------------------------------------------------
     openText := "true"
-    quizz Question, Img,
-        quizz_set_url := quizz_set_url & "&opentext"
+    quiz Question, Img,
+        quiz_set_url := quiz_set_url & "&opentext"
         Body
 
-OTQ_quizz  Question:text, Body ->
+open_text_question  Question:text, Body ->
 // ----------------------------------------------------------------------------
 //    Setup a new Open Text Question without image in the question
 // ----------------------------------------------------------------------------
-    OTQ_quizz  Question, "", Body
+    open_text_question  Question, "", Body
 
-Mouse_quizz Question:text, Img:text, Body ->
+mouse_quiz Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
 //    Setup a new Mouse interaction with an image in the question
 // ----------------------------------------------------------------------------
     openText := "true";
-    quizz Question, Img,
-        quizz_set_url := quizz_set_url & "&mouse"
+    quiz Question, Img,
+        quiz_set_url := quiz_set_url & "&mouse"
         Body
 
-Mouse_quizz Question:text, Body ->
+mouse_quiz Question:text, Body ->
 // ----------------------------------------------------------------------------
 //    Setup a new Mouse interaction without image in the question
 // ----------------------------------------------------------------------------
-    Mouse_quizz Question, "", Body
+    mouse_quiz Question, "", Body
 
 
 
@@ -81,10 +81,10 @@ Mouse_quizz Question:text, Body ->
 
 answer T:text, Img:text, Score:integer ->
 // ----------------------------------------------------------------------------
-//    Add an answer to a Quizz
+//    Add an answer to a Quiz
 // ----------------------------------------------------------------------------
-    answer_internal quizz_state, quizz_index, T, Score, Img
-    quizz_index := quizz_index + 1
+    answer_internal quiz_state, quiz_index, T, Score, Img
+    quiz_index := quiz_index + 1
 
 answer T:text, Score:integer -> answer T, "", Score
 answer T:text, Img:text -> answer T, Img, 0
@@ -94,63 +94,63 @@ answer T:text -> answer T, "", 0
 
 // ============================================================================
 //
-//  Internal functions for quizz setup
+//  Internal functions for quiz setup
 //
 // ============================================================================
 
-quizz Question:text, Img:text, Body ->
+quiz Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
-//    Setup a new quizz
+//    Setup a new quiz
 // ----------------------------------------------------------------------------
     // Initialize the state of the new question
-    quizz_setup Question, Img, Body
+    quiz_setup Question, Img, Body
 
-    if quizz_phase = "question" then
-        // Draw the quizz
-        quizz_draw Question, Img, Body
+    if quiz_phase = "question" then
+        // Draw the quiz
+        quiz_draw Question, Img, Body
     else
-        // Draw the quizz
-        quizz_answers Question, Img, Body
+        // Draw the quiz
+        quiz_answers Question, Img, Body
 
 
-quizz Question:text, Body ->
+quiz Question:text, Body ->
 // ----------------------------------------------------------------------------
-//    Setup a new quizz with no image
+//    Setup a new quiz with no image
 // ----------------------------------------------------------------------------
-    quizz Question, "", Body
+    quiz Question, "", Body
 
 
-quizz_setup Question:text, Img:text, Body ->
+quiz_setup Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
-//    Setup a new Quizz
+//    Setup a new Quiz
 // ----------------------------------------------------------------------------
     locally
         if page_time < 1 then
-            quizz_phase := "question"
-            quizz_index := 1
-            quizz_set_url := quizz_url & "set.php?" & prez_code & "&q=" & escT Question & "|" & Img
-            quizz_state := "setup"
+            quiz_phase := "question"
+            quiz_index := 1
+            quiz_set_url := quiz_url & "set.php?" & prez_code & "&q=" & escT Question & "|" & Img
+            quiz_state := "setup"
 
             // Evaluate body
             Body
 
             // Request URL and move to next page
-            get_url_text quizz_set_url
+            get_url_text quiz_set_url
 
         else
             no_refresh_on TimerEvent
 
 
-quizz_option T:text ->
+quiz_option T:text ->
 // ----------------------------------------------------------------------------
 //   Send an option directly to the server
 // ----------------------------------------------------------------------------
-    quizz_set_url := quizz_set_url & "&" & T
+    quiz_set_url := quiz_set_url & "&" & T
 
 
-quizz_draw Question:text, Img:text, Body ->
+quiz_draw Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default drawing for a quizz
+//    Default drawing for a quiz
 // ----------------------------------------------------------------------------
     title
         text Question
@@ -163,14 +163,14 @@ quizz_draw Question:text, Img:text, Body ->
 
     if openText = "false" then
         story
-            quizz_index := 1
-            quizz_state := "draw"
+            quiz_index := 1
+            quiz_state := "draw"
             Body
             time
     else
         locally
-            quizz_index := 1
-            quizz_state := "draw"
+            quiz_index := 1
+            quiz_state := "draw"
             time
             Body
 
@@ -181,25 +181,25 @@ quizz_draw Question:text, Img:text, Body ->
 //
 // ============================================================================
 
-quizz_answers Question:text, Img:text, Body ->
+quiz_answers Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default drawing for a quizz
+//    Default drawing for a quiz
 // ----------------------------------------------------------------------------
-    quizz_draw Question, Img,
-        quizz_state := "answer"
+    quiz_draw Question, Img,
+        quiz_state := "answer"
         Body
 
 
 answer_internal "setup", A:integer, T:text, Score:integer, Img:text ->
 // ----------------------------------------------------------------------------
-//   Add an answer to a quizz
+//   Add an answer to a quiz
 // ----------------------------------------------------------------------------
-    quizz_set_url := quizz_set_url & "&a" & text A & "=" & text Score & "|" & escT T & "|" & Img
+    quiz_set_url := quiz_set_url & "&a" & text A & "=" & text Score & "|" & escT T & "|" & Img
 
 
 answer_internal "draw", A:integer, T:text, Score:integer, Img:text ->
 // ----------------------------------------------------------------------------
-//   Draw a paragraph for a quizz
+//   Draw a paragraph for a quiz
 // ----------------------------------------------------------------------------
     - (text A & " - " & T)
     if Img <> ""  then
@@ -210,7 +210,7 @@ answer_internal "draw", A:integer, T:text, Score:integer, Img:text ->
 
 answer_internal "answer", A:integer, T:text, Score:integer, Img:text ->
 // ----------------------------------------------------------------------------
-//   Draw a paragraph for a quizz
+//   Draw a paragraph for a quiz
 // ----------------------------------------------------------------------------
     text_span
         if Score > 0 then
@@ -218,7 +218,7 @@ answer_internal "answer", A:integer, T:text, Score:integer, Img:text ->
         else
             color "darkblue"
 
-        graph_bullet (text A & " - " & T), real(quizz_score A), real (quizz_total)
+        graph_bullet (text A & " - " & T), real(quiz_score A), real (quiz_total)
 
         if Img <> ""  then
             color "white"
@@ -227,35 +227,35 @@ answer_internal "answer", A:integer, T:text, Score:integer, Img:text ->
 
 // ============================================================================
 //
-//  Functions to get Quizz/Result information
+//  Functions to get Quiz/Result information
 //
 // ============================================================================
-quizz_score I:integer ->
+quiz_score I:integer ->
 // ----------------------------------------------------------------------------
 //   Return the score for the given index
 // ----------------------------------------------------------------------------
-    get_url_text quizz_url & "value.php?" & prez_code & "&a=" & text I
+    get_url_text quiz_url & "value.php?" & prez_code & "&a=" & text I
 
 
-quizz_total ->
+quiz_total ->
 // ----------------------------------------------------------------------------
 //   Return the total number of answers
 // ----------------------------------------------------------------------------
-    get_url_text quizz_url & "value.php?" & prez_code & "&total"
+    get_url_text quiz_url & "value.php?" & prez_code & "&total"
 
 
-quizz_reset_question Question:text->
+quiz_reset_question Question:text->
 // ----------------------------------------------------------------------------
 //    Reset the current question
 // ----------------------------------------------------------------------------
-    get_url_text quizz_url & "clear.php?" & prez_code & "&q=" & Question
+    get_url_text quiz_url & "clear.php?" & prez_code & "&q=" & Question
 
 
-quizz_I_am_sure_I_want_to_reset_all ->
+quiz_I_am_sure_I_want_to_reset_all ->
 // ----------------------------------------------------------------------------
 //    Reset the current quiz
 // ----------------------------------------------------------------------------
-    get_url_text quizz_url & "reset.php?" & prez_code
+    get_url_text quiz_url & "reset.php?" & prez_code
 
 
 // ============================================================================
@@ -263,58 +263,58 @@ quizz_I_am_sure_I_want_to_reset_all ->
 //  Functions to set generic behavior
 //
 // ============================================================================
-quizz_deactivate_on_answer Time:integer ->
+quiz_deactivate_on_answer Time:integer ->
 // ----------------------------------------------------------------------------
 //   Stop the possibility to users to answer, but the result is still showable
 // ----------------------------------------------------------------------------
     after Time,
-        deactivate quizz_phase
+        deactivate quiz_phase
 
 
-quizz_deactivate_on_answer ->
+quiz_deactivate_on_answer ->
 // ----------------------------------------------------------------------------
 //   Stop the possibility to users to answer, but the result is still showable
 // ----------------------------------------------------------------------------
-    deactivate quizz_phase
+    deactivate quiz_phase
 
 
 deactivate "answer" ->
-     quizz_set_url := quizz_set_url & "&deactivate"
+     quiz_set_url := quiz_set_url & "&deactivate"
 deactivate T -> false
 
 
 
 // ============================================================================
 //
-//  Functions to set MCQ behavior
+//  Functions to set quiz question behavior
 //
 // ============================================================================
-quizz_set_unique ->
+quiz_set_unique ->
 // ----------------------------------------------------------------------------
 //    'unique' mode: for each user, only the first answer is registered
 // ----------------------------------------------------------------------------
-    quizz_set_url := quizz_set_url & "&unique"
+    quiz_set_url := quiz_set_url & "&unique"
 
 
-quizz_set_last ->
+quiz_set_last ->
 // ----------------------------------------------------------------------------
 //    'last' mode: for each user, only the last answer is registered
 // ----------------------------------------------------------------------------
-    quizz_set_url := quizz_set_url & "&last"
+    quiz_set_url := quiz_set_url & "&last"
 
 
-quizz_set_multiple ->
+quiz_set_multiple ->
 // ----------------------------------------------------------------------------
 //   'multiple' mode: for each user, all answers are registered
 // ----------------------------------------------------------------------------
-    quizz_set_url := quizz_set_url & "&multiple"
+    quiz_set_url := quiz_set_url & "&multiple"
 
 
-quizz_set_user_feedback T:text  ->
+quiz_set_user_feedback T:text  ->
 // ----------------------------------------------------------------------------
 //    User's feedback choice
 // ----------------------------------------------------------------------------
-     quizz_set_url := quizz_set_url & "&userfeedback=" & T
+     quiz_set_url := quiz_set_url & "&userfeedback=" & T
 // Possible values for T are:
 // no   -> no feedback (default value)
 // self -> its own answer
@@ -327,16 +327,16 @@ quizz_set_user_feedback T:text  ->
 //
 // ============================================================================
 
-quizz_set_mouse_pad Square:text, T:text, Image:text ->
+quiz_set_mouse_pad Square:text, T:text, Image:text ->
 // ----------------------------------------------------------------------------
 //    Configuration for squares of the mouse pad
 // ----------------------------------------------------------------------------
-     quizz_set_url := quizz_set_url & "&" & Square & "=" & T & "|" & Image
+     quiz_set_url := quiz_set_url & "&" & Square & "=" & T & "|" & Image
 // The mouse pad is made of 9 squares. Except the middle one, they are each
 // settable with text and image. Square is combination of [tmb][lcr] for
 // Top, Middle, Bottom and Left, Center, Right.
 
-quizz_set_mouse_pad T ->
+quiz_set_mouse_pad T ->
     debug T
 
 
@@ -345,7 +345,7 @@ quizz_set_mouse_pad T ->
 //  Functions to draw a graph in front of each answer
 //
 // ============================================================================
-quizz_graph "barchart", Index:integer, Value:real, Total:real ->
+quiz_graph "barchart", Index:integer, Value:real, Total:real ->
 // ----------------------------------------------------------------------------
 //   Draw a graph item
 // ----------------------------------------------------------------------------
@@ -368,7 +368,7 @@ quizz_graph "barchart", Index:integer, Value:real, Total:real ->
         cylinder 0, 0, 1 + 3 * Value, 10, 10, 3 + 6 * Value
 
 
-quizz_graph "piechart", Index:integer, Value:real, Total:real  ->
+quiz_graph "piechart", Index:integer, Value:real, Total:real  ->
 // ----------------------------------------------------------------------------
 //   Draw a pie chart item
 // ----------------------------------------------------------------------------
@@ -406,7 +406,7 @@ graph_bullet Text:text, score:real, total: real ->
     paragraph_break
     anchor
         theme_style theme, slide_master, "bullet"
-        quizz_graph graph_style, quizz_index, score, total
+        quiz_graph graph_style, quiz_index, score, total
     text Text
 
 
@@ -424,7 +424,7 @@ colorpie T -> color "gray"; line_color "darkgray"
 //  Functions to draw a Pie to summup all answers
 //
 // ============================================================================
-total_answer_graph -> fullpie quizz_state
+total_answer_graph -> fullpie quiz_state
 
 fullpie "answer" ->
 // ----------------------------------------------------------------------------
@@ -434,10 +434,10 @@ fullpie "answer" ->
     floating
         draw_start -> 0.0
         v -> 0.0
-        Total ->real( quizz_total )
+        Total ->real( quiz_total )
         t -> if (Total > 0.0) then Total else 1.0
         draw_pie idx:integer ->
-            v := (real (quizz_score idx)) / t
+            v := (real (quiz_score idx)) / t
             colorpie idx
             ellipse_arc 0, 0, 100, 100, draw_start, 360.0 * v
             draw_start := draw_start + (360.0 * v)
@@ -445,7 +445,7 @@ fullpie "answer" ->
         translatex 500
         translatey -400
         draw_start := 0.0
-        draw_pie with 1..quizz_index
+        draw_pie with 1..quiz_index
         text_box 250, 0, 500, 70,
             locally
                 color "font"
@@ -466,7 +466,7 @@ fullpie "draw" ->
         text_box 250, 0, 500, 70,
             color "font"
             line_color "font"
-            text quizz_total
+            text quiz_total
             text " answers" fr " réponses"
 
 
@@ -485,7 +485,7 @@ Delta_Y -> 60
 BoxPerCol -> 10
 
 
-quizz_show_text_answers -> show_answers_def quizz_state
+quiz_show_text_answers -> show_answers_def quiz_state
 // ----------------------------------------------------------------------------
 //  Default style to draw answers.
 // ----------------------------------------------------------------------------
@@ -496,7 +496,7 @@ show_answers Style:text ->
 //  call "style" function with each answer
 // ----------------------------------------------------------------------------
     AnsId := 0
-    get_url_data quizz_url & "value.php?" & prez_code, Style, "", ","
+    get_url_data quiz_url & "value.php?" & prez_code, Style, "", ","
 
 show_answers T -> false
 
@@ -533,7 +533,7 @@ show_answers_def "answer"->
 // ----------------------------------------------------------------------------
     locally
         X_box := 0
-        NbBox := integer(quizz_total)
+        NbBox := integer(quiz_total)
         if OldNbBox <> NbBox then
             OldNbBox := NbBox
             Once := 1
@@ -557,16 +557,16 @@ show_answers_def "answer"->
         align_left
         margins 5, 0
         // Draw each answer
-        show_answers "Default_answer_display"
+        show_answers "default_answer_display"
 
 
-Default_answer_display "" ->
+default_answer_display "" ->
 // ----------------------------------------------------------------------------
 //  Nothing drawn for empty lines
 // ----------------------------------------------------------------------------
     false
 
-Default_answer_display Answer:text ->
+default_answer_display Answer:text ->
 // ----------------------------------------------------------------------------
 //  Answers drawing.
 // ----------------------------------------------------------------------------
@@ -639,22 +639,22 @@ text_mouse T-> false
 
 LAST_BUTTON -> "none"
 
-quizz_draw_mouse "draw_mouse" ->
+quiz_draw_mouse "draw_mouse" ->
 // ----------------------------------------------------------------------------
 //  Draw mouses location on the screen
 // ----------------------------------------------------------------------------
     canvas 1000, 1000,
-        get_url_data quizz_url & "mouse_data.php?" & prez_code, "draw_mouse", ",", "\n"
+        get_url_data quiz_url & "mouse_data.php?" & prez_code, "draw_mouse", ",", "\n"
     rectangle 0,0,1000,1000
 
-quizz_draw_mouse Style:text ->
+quiz_draw_mouse Style:text ->
 // ----------------------------------------------------------------------------
 //  Generic mouse handling
 // ----------------------------------------------------------------------------
-    get_url_data quizz_url & "mouse_data.php?" & prez_code, Style, ",", "\n"
+    get_url_data quiz_url & "mouse_data.php?" & prez_code, Style, ",", "\n"
 
 
-quizz_draw_mouse -> quizz_draw_mouse "draw_mouse"
+quiz_draw_mouse -> quiz_draw_mouse "draw_mouse"
 // ----------------------------------------------------------------------------
 //  Default mouse handling
 // ----------------------------------------------------------------------------
@@ -696,23 +696,23 @@ escT T:text ->
 //
 // ============================================================================
 
-prez_name -> "z=" & quizz_name
-prez_code -> prez_name & "&c=" & quizz_presenter_code
+prez_name -> "z=" & quiz_name
+prez_code -> prez_name & "&c=" & quiz_presenter_code
 graph_style -> "barchart"
 
 bargraph -> graph_style := "barchart"
 piegraph -> graph_style := "piechart"
 
 key "/" ->
-    if quizz_phase = "question" then
-        quizz_phase := "answer"
+    if quiz_phase = "question" then
+        quiz_phase := "answer"
     else
-        quizz_phase := "question"
+        quiz_phase := "question"
 
 openText -> "false"
 
-quizz_index -> 0
-quizz_set_url -> ""
-quizz_state -> "setup"
-quizz_phase -> "question"
+quiz_index -> 0
+quiz_set_url -> ""
+quiz_state -> "setup"
+quiz_phase -> "question"
 
