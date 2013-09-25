@@ -1,0 +1,20 @@
+// Quiz module definition
+//
+// Quiz module provided by Taodyne
+//
+// Copyright 2013 Taodyne SAS
+
+module_description
+    id "22FFC2F1-3C5F-4FBE-87FF-BB483295E63F" 
+    name "Quiz module"
+    description "Quiz module provided by Taodyne"
+    import_name "Quiz"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.002
+
+import "quiz2.xl.crypt"
+
+module_description "fr",
+    name "module Quiz"
+    description "module Quiz proposé par Taodyne"
