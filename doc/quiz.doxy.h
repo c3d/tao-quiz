@@ -106,10 +106,10 @@
  * par la commande @see answer.
  * @param Question Le texte de la question.
  * @param Img L'URL de l'image illustrant la question si il y en a une.
- * @param Body Les réponses possibles et paramètres de comportement du quizz.
+ * @param Body Les réponses possibles et paramètres de comportement du quiz.
  */
-MCQ_quizz (text Question, text Img, tree Body);
-MCQ_quizz (text Question, tree Body);
+quiz (text Question, text Img, tree Body);
+quiz (text Question, tree Body);
 
 
 /**
@@ -141,7 +141,7 @@ answer (text T, text Img, integer Score);
  * Retourne le nombre de vote pour la réponse I.
  * @param I L'index de la réponse.
  */
-quizz_score (integer I);
+quiz_score (integer I);
 
 
 /**
@@ -155,7 +155,7 @@ quizz_score (integer I);
  *
  * La première réponse uniquement de chaque utilisateur est enregistrée.
  */
-quizz_set_unique();
+quiz_set_unique();
 
 
 /**
@@ -169,7 +169,7 @@ quizz_set_unique();
  *
  * La dernière réponse de chaque utilisateur est enregistrée.
  */
-quizz_set_last();
+quiz_set_last();
 
 /**
  * @~english
@@ -182,7 +182,7 @@ quizz_set_last();
  *
  * Toutes les réponses sont enregistrées.
  */
-quizz_set_multiple();
+quiz_set_multiple();
 
 /**
  * @~english
@@ -238,7 +238,7 @@ total_answer_graph();
  *    * self -> Sa propre réponse.
  *    * stat -> Statistique sur toutes les réponses.
  */
-quizz_set_user_feedback (text T);
+quiz_set_user_feedback (text T);
 
 /**
  * @~english
@@ -251,7 +251,7 @@ quizz_set_user_feedback (text T);
  *
  * Retourne le nombre total de votes.
  */
-quizz_total();
+quiz_total();
 
 
 /**
@@ -263,8 +263,8 @@ quizz_total();
  * La question et les réponses sont toujours affichées, mais les utilisateurs
  * ne peuvent plus répondre.
  */
-quizz_deactivate_on_answer (integer Time);
-quizz_deactivate_on_answer ();
+quiz_deactivate_on_answer (integer Time);
+quiz_deactivate_on_answer ();
 
 
 /** @name Open Text Question
@@ -308,8 +308,8 @@ quizz_deactivate_on_answer ();
  * @param Img L'URL del'image illustrant la question.
  * @param Body Définition du comportement de la question.
  */
-OTQ_quizz (text Question, text Img, tree Body);
-OTQ_quizz (text Question, tree Body);
+open_text_question (text Question, text Img, tree Body);
+open_text_question (text Question, tree Body);
 
 /**
  * @~english
@@ -318,7 +318,7 @@ OTQ_quizz (text Question, tree Body);
  * @~french
  * Affiche les réponses de tous les utilisateurs.
  */
-quizz_show_text_answers();
+quiz_show_text_answers();
 
 /**
  * @~english
@@ -388,8 +388,8 @@ int BoxPerCol = 10;
  * @param Body Configuration.
 
  */
-Mouse_quizz (text Title, text Img, tree Body);
-Mouse_quizz (text Title, tree Body);
+mouse_quiz (text Title, text Img, tree Body);
+mouse_quiz (text Title, tree Body);
 
 
 /**
@@ -410,7 +410,7 @@ Mouse_quizz (text Title, tree Body);
  * @param T Le texte a afficher dans le carré
  * @param Image L'URL de l'image a afficher.
  */
-quizz_set_mouse_pad (text Square, text T, text Image);
+quiz_set_mouse_pad (text Square, text T, text Image);
 /**@}*/
 
 
