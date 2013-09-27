@@ -22,6 +22,7 @@ import NetworkAccess
 import RegExp
 import Slides
 import Animate
+
 // ============================================================================
 //
 //  Main question functions
@@ -33,7 +34,7 @@ quiz Question:text, Img:text, Body ->
 //    Setup a new MultiChoice Question with an image in the question
 // ----------------------------------------------------------------------------
     openText := "false"
-    quiz Question, Img, Body
+    internal_quiz Question, Img, Body
 
 quiz Question:text, Body ->
 // ----------------------------------------------------------------------------
@@ -46,7 +47,7 @@ open_text_question  Question:text, Img:text, Body ->
 //    Setup a new Open Text Question with an image in the question
 // ----------------------------------------------------------------------------
     openText := "true"
-    quiz Question, Img,
+    internal_quiz Question, Img,
         quiz_set_url := quiz_set_url & "&opentext"
         Body
 
@@ -61,7 +62,7 @@ mouse_quiz Question:text, Img:text, Body ->
 //    Setup a new Mouse interaction with an image in the question
 // ----------------------------------------------------------------------------
     openText := "true";
-    quiz Question, Img,
+    internal_quiz Question, Img,
         quiz_set_url := quiz_set_url & "&mouse"
         Body
 
@@ -98,7 +99,7 @@ answer T:text -> answer T, "", 0
 //
 // ============================================================================
 
-quiz Question:text, Img:text, Body ->
+internal_quiz Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
 //    Setup a new quiz
 // ----------------------------------------------------------------------------
@@ -113,11 +114,11 @@ quiz Question:text, Img:text, Body ->
         quiz_answers Question, Img, Body
 
 
-quiz Question:text, Body ->
+internal_quiz Question:text, Body ->
 // ----------------------------------------------------------------------------
 //    Setup a new quiz with no image
 // ----------------------------------------------------------------------------
-    quiz Question, "", Body
+    internal_quiz Question, "", Body
 
 
 quiz_setup Question:text, Img:text, Body ->
