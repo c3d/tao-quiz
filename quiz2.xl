@@ -33,7 +33,6 @@ quiz Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
 //    Setup a new MultiChoice Question with an image in the question
 // ----------------------------------------------------------------------------
-    openText := "false"
     internal_quiz Question, Img, Body
 
 quiz Question:text, Body ->
@@ -42,20 +41,6 @@ quiz Question:text, Body ->
 // ----------------------------------------------------------------------------
     quiz Question, "", Body
 
-open_text_question  Question:text, Img:text, Body ->
-// ----------------------------------------------------------------------------
-//    Setup a new Open Text Question with an image in the question
-// ----------------------------------------------------------------------------
-    openText := "true"
-    internal_quiz Question, Img,
-        quiz_set_url := quiz_set_url & "&opentext"
-        Body
-
-open_text_question  Question:text, Body ->
-// ----------------------------------------------------------------------------
-//    Setup a new Open Text Question without image in the question
-// ----------------------------------------------------------------------------
-    open_text_question  Question, "", Body
 
 mouse_quiz Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
@@ -91,6 +76,17 @@ answer T:text, Score:integer -> answer T, "", Score
 answer T:text, Img:text -> answer T, Img, 0
 answer T:text -> answer T, "", 0
 
+open_answer other:text ->
+// ----------------------------------------------------------------------------
+//    Setup a new Open Text Question 
+// ----------------------------------------------------------------------------
+    open_answer_internal quiz_state, quiz_index, other
+
+open_answer ->
+// ----------------------------------------------------------------------------
+//    Setup a new Open Text Question with an image in the question
+// ----------------------------------------------------------------------------
+    open_answer ""
 
 
 // ============================================================================
@@ -208,6 +204,8 @@ answer_internal "draw", A:integer, T:text, Score:integer, Img:text ->
             color "white"
             image 0,0,1,1, Img
 
+GoodColor -> "Darkblue"
+DefaultColor -> "black"
 
 answer_internal "answer", A:integer, T:text, Score:integer, Img:text ->
 // ----------------------------------------------------------------------------
@@ -215,15 +213,59 @@ answer_internal "answer", A:integer, T:text, Score:integer, Img:text ->
 // ----------------------------------------------------------------------------
     text_span
         if Score > 0 then
-            color "darkred"
+            color GoodColor
         else
-            color "darkblue"
+            color DefaultColor
 
         graph_bullet (text A & " - " & T), real(quiz_score A), real (quiz_total)
 
         if Img <> ""  then
             color "white"
             image 0,0,1,1, Img
+
+
+open_answer_internal "setup", A:integer, T:text ->
+// ----------------------------------------------------------------------------
+//   Add an open text answer to a quiz
+// ----------------------------------------------------------------------------
+    quiz_set_url := quiz_set_url & "&a" & text A & "=" & escT T
+
+
+open_answer_internal "draw", A:integer, T:text ->
+// ----------------------------------------------------------------------------
+//   Draw a paragraph for a quiz
+// ----------------------------------------------------------------------------
+    if T <> "" then
+        answer_internal "draw", A, T, 0, ""
+
+
+open_answer_internal "answer", A:integer, T:text ->
+// ----------------------------------------------------------------------------
+//   Draw a paragraph for a quiz
+// ----------------------------------------------------------------------------
+    if T <> "" then
+        answer_internal "answer", A, T, 0, ""
+    paragraph_break
+    // Draw each answer
+    get_url_data quiz_url & "value.php?" & prez_code, "display_open_answer", "", ","
+    text_flow "answer" & page_label
+
+
+display_open_answer "" ->
+// ----------------------------------------------------------------------------
+//  Nothing drawn for empty lines
+// ----------------------------------------------------------------------------
+    false
+
+display_open_answer Answer:text ->
+// ----------------------------------------------------------------------------
+//  Fill the text_flow
+// ----------------------------------------------------------------------------
+    text_flow "answer" & page_label,
+        text filter_open_answer Answer
+
+display_open_answer T -> false
+
 
 
 // ============================================================================
@@ -473,128 +515,6 @@ fullpie "draw" ->
 
 fullpie T -> false
 
-// ============================================================================
-//
-//   Open text management
-//
-// ============================================================================
-// ----------------------------------------------------------------------------
-//  CONFIGURABLE - Widht, height of text boxes, number of text boxes per column
-// ----------------------------------------------------------------------------
-Delta_X -> 400
-Delta_Y -> 60
-BoxPerCol -> 10
-
-
-quiz_show_text_answers -> show_answers_def quiz_state
-// ----------------------------------------------------------------------------
-//  Default style to draw answers.
-// ----------------------------------------------------------------------------
-
-
-show_answers Style:text ->
-// ----------------------------------------------------------------------------
-//  call "style" function with each answer
-// ----------------------------------------------------------------------------
-    AnsId := 0
-    get_url_data quiz_url & "value.php?" & prez_code, Style, "", ","
-
-show_answers T -> false
-
-// ----------------------------------------------------------------------------
-//  NOT settable - Used variables for default answer
-// ----------------------------------------------------------------------------
-// Total number of box to draw, previous and current
-NbBox -> 0
-OldNbBox -> 0
-
-// AutoScroll is set to "off" when left/right key are hit,
-//            and set to "on" when return key is hit.
-AutoScroll -> "on"
-// Number of the current answer (between 0 and NbBox)
-AnsId -> 0
-// X position to draw the text box
-X_box -> 0
-// Used to scroll once when number of colmn increase in autoscroll mode
-Once -> 0
-
-show_answers_def "draw"->
-// ----------------------------------------------------------------------------
-//  Default message for question page.
-// ----------------------------------------------------------------------------
-    text_box 0, 0, 800, 600,
-        align_center
-        font "TeX Gyre Adventor", "Arial", 30
-        text "Hit / to see answers" fr "Appuyez sur / pour voir les réponses "
-
-
-show_answers_def "answer"->
-// ----------------------------------------------------------------------------
-//  Answer preparation.
-// ----------------------------------------------------------------------------
-    locally
-        X_box := 0
-        NbBox := integer(quiz_total)
-        if OldNbBox <> NbBox then
-            OldNbBox := NbBox
-            Once := 1
-        // Draw the number of answers
-        text_box -200, -450, 800, 60,
-            font "TeX Gyre Adventor", "Arial", 30
-            text "Number of answer "fr "Nombre de réponses "
-            text text NbBox
-        // Compute the Begining : where to scroll when return is hit
-        Begining := (NbBox / BoxPerCol) - 1
-        translatey -300
-        compute_smooth_step
-        translatex -(smooth_step * Delta_X)
-        // Draw the column number of the first column
-        text_box X_box, Delta_Y * BoxPerCol, Delta_X, Delta_Y,
-            font "TeX Gyre Adventor", "Arial", 30
-            text "1"
-
-        // Set layout for each answer
-        font "TeX Gyre Adventor", "Arial", 38, bold
-        align_left
-        margins 5, 0
-        // Draw each answer
-        show_answers "default_answer_display"
-
-
-default_answer_display "" ->
-// ----------------------------------------------------------------------------
-//  Nothing drawn for empty lines
-// ----------------------------------------------------------------------------
-    false
-
-default_answer_display Answer:text ->
-// ----------------------------------------------------------------------------
-//  Answers drawing.
-// ----------------------------------------------------------------------------
-    locally
-        // Translate to the drawing position
-        Y_box -> (AnsId mod BoxPerCol ) * Delta_Y
-        translatex X_box
-        translatey Y_box
-        // The answer
-        box 0, 0, Delta_X, Delta_Y,
-            theme_style theme, slide_master, "story", 3
-            text Answer
-
-    // Manage the answer number and column skip
-    AnsId := AnsId + 1
-    if (AnsId mod BoxPerCol ) = 0 then
-        X_box := X_box + Delta_X
-        // Draw the column number
-        text_box X_box, Delta_Y * BoxPerCol, Delta_X, Delta_Y,
-            font "TeX Gyre Adventor", "Arial", 30
-            text text ((AnsId / BoxPerCol) + 1)
-        // Shift once if not already done
-        if Once <> 0 and AutoScroll = "on" and NbBox mod BoxPerCol = 0.0 then
-            skip 1
-            Once := 0
-
-show_answers_def T -> false
 
 // ============================================================================
 //
@@ -690,6 +610,17 @@ escT T:text ->
         regexp_parse_text T,
             "\|"  -> "\|"
             "[^\|]+" -> regexp_captured 0
+
+filter_open_answer T:text ->
+// ----------------------------------------------------------------------------
+//    Escape | in questions and answers
+// ----------------------------------------------------------------------------
+    if T = "" then
+        ""
+    else
+        regexp_parse_text T,
+            <<%22(.*)%22\n>> -> (regexp_captured 1) & " "
+            ""
 
 // ============================================================================
 //
