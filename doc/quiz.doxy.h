@@ -1,9 +1,9 @@
 /**
  * @~english
- * @taomoduledescription{TaoQuiz, TaoQuiz module}
- * <tt>import TaoQuiz</tt>.@n
+ * @taomoduledescription{Quiz, Quiz module}
+ * <tt>import Quiz</tt>.@n
  *
- * TaoQuiz module is to be used with the quiz web server.
+ * Quiz module is to be used with the quiz web server.
  * It allows a presenter to ask questions and to users to answer.
  * Questions and answers can contain images as URL.
  * Multichoice question and open text question are available, as well as
@@ -26,11 +26,11 @@
  *
  * To switch from one to another, hit '/'.
  *
- * @endtaomoduledescription{TaoQuiz}
+ * @endtaomoduledescription{Quiz}
  *
  * @~french
- * @taomoduledescription{TaoQuiz, module TaoQuiz}
- * <tt>import TaoQuiz</tt>.@n
+ * @taomoduledescription{Quiz, module Quiz}
+ * <tt>import Quiz</tt>.@n
  *
  * Le module TaoQuiz doit être utilisé avec le server web quiz.
  * Il permet à un présentateur de poser des questions à des utilisateurs.
@@ -61,7 +61,7 @@
  *
  * Pour passer d'un mode à l'autre, appuyez sur '/'.
  *
- * @endtaomoduledescription{TaoQuiz}
+ * @endtaomoduledescription{Quiz}
  *
  * @~
  * @{
@@ -114,7 +114,7 @@ quiz (text Question, tree Body);
 
 /**
  * @~english
- * Displays one of the possible answers for MCQ.
+ * Displays one of the possible answers for multichoice question.
  *
  * @param T text of the response
  * @param Img the URL of the image, if any.
@@ -131,6 +131,26 @@ answer (text T, integer Score);
 answer (text T, text Img);
 answer (text T);
 answer (text T, text Img, integer Score);
+
+
+/**
+ * @~english
+ * Open Text Answers
+ *
+ * Displays an open text answer.
+ *
+ * @param Label A comment that take place in front of the input field.
+ *
+ * @~french
+ * Question à réponse ouvertes
+ *
+ * Affiche une réponse ouverte.
+ *
+ * @param Label Permet de mettre un commentaire devant le champ de saisie.
+ */
+open_answer (text Label);
+open_answer ();
+
 
 /**
  * @~english
@@ -267,85 +287,8 @@ quiz_deactivate_on_answer (integer Time);
 quiz_deactivate_on_answer ();
 
 
-/** @name Open Text Question
- *
- * @~english
- * Functions to use and configure open text question.
- *
- * On Tao, question part, only the question is shown. In response part, each
- * answer is displayed in a small box layout in column.
- *
- * On the user device, the question and a input text box is displayed.
- *
- * @~french
- * Fonctions pour utiliser et configurer des questions à réponses ouvertes.
- *
- * Sur Tao, en mode question, seule la question est affichée. En mode réponse,
- * chaque réponse est affichée dans une boîte de texte. Elles sont organisées
- * en colonne.
- *
- * Sur l'appareil de l'utilisateur, la question et un champ d'entrée de texte
- * sont affichés.
- */
-/**@{*/
 
-/**
- * @~english
- * Open Text Question
- *
- * Displays an open text question.
- *
- * @param Question the text of the question.
- * @param Img the URL of the image of the question, if any.
- * @param Body quiz behavior.
- *
- * @~french
- * Question à réponse ouvertes
- *
- * Affiche une question à réponse ouverte.
- *
- * @param Question Le texte de la question.
- * @param Img L'URL del'image illustrant la question.
- * @param Body Définition du comportement de la question.
- */
-open_text_question (text Question, text Img, tree Body);
-open_text_question (text Question, tree Body);
 
-/**
- * @~english
- * Display the answers of open text question.
- *
- * @~french
- * Affiche les réponses de tous les utilisateurs.
- */
-quiz_show_text_answers();
-
-/**
- * @~english
- * X size of the text box to display.
- *
- * @~french
- * Largeur de la boîte de texte affichée.
- */
-int Delta_X = 400;
-/**
- * @~english
- * Y size of the text box to display.
- *
- * @~french
- * Hauteur de la boîte de texte affichée.
- */
-int Delta_Y = 60;
-/**
- * @~english
- * Number of text box to display per column.
- *
- * @~french
- * Nombre de boîte de texte par colonne.
- */
-int BoxPerCol = 10;
-
-/**@}*/
 
 /** @name Mouse pad
  *
