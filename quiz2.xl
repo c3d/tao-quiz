@@ -33,7 +33,6 @@ quiz Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
 //    Setup a new MultiChoice Question with an image in the question
 // ----------------------------------------------------------------------------
-    quiz_open_text := "false"
     internal_quiz Question, Img, Body
 
 quiz Question:text, Body ->
@@ -47,7 +46,7 @@ mouse_quiz Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
 //    Setup a new Mouse interaction with an image in the question
 // ----------------------------------------------------------------------------
-    quiz_open_text := "true";
+    openText := "true";
     internal_quiz Question, Img,
         quiz_set_url := quiz_set_url & "&mouse"
         Body
@@ -126,7 +125,7 @@ quiz_setup Question:text, Img:text, Body ->
         if page_time < 1 then
             quiz_phase := "question"
             quiz_index := 1
-            quiz_set_url := quiz_url & "set.php?" & prez_code & "&q=" & quiz_escape Question & "|" & Img
+            quiz_set_url := quiz_url & "set.php?" & prez_code & "&q=" & escT Question & "|" & Img
             quiz_state := "setup"
 
             // Evaluate body
@@ -146,8 +145,6 @@ quiz_option T:text ->
     quiz_set_url := quiz_set_url & "&" & T
 
 
-image_width Img:text -> image_size Img at 2
-
 quiz_draw Question:text, Img:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default drawing for a quiz
@@ -157,12 +154,11 @@ quiz_draw Question:text, Img:text, Body ->
         if Img <> "" then
             line_break
             anchor
-                adjust_position image_width Img
-                adjust_position X:real, Y:real -> translate 0, -Y/2, 0
+                translatey -(image_size Img at 2) / 2
                 color "white"
                 image 0,0,1,1, Img
 
-    if quiz_open_text = "false" then
+    if openText = "false" then
         story
             quiz_index := 1
             quiz_state := "draw"
@@ -195,21 +191,21 @@ answer_internal "setup", A:integer, T:text, Score:integer, Img:text ->
 // ----------------------------------------------------------------------------
 //   Add an answer to a quiz
 // ----------------------------------------------------------------------------
-    quiz_set_url := quiz_set_url & "&a" & text A & "=" & text Score & "|" & quiz_escape T & "|" & Img
+    quiz_set_url := quiz_set_url & "&a" & text A & "=" & text Score & "|" & escT T & "|" & Img
 
 
 answer_internal "draw", A:integer, T:text, Score:integer, Img:text ->
 // ----------------------------------------------------------------------------
 //   Draw a paragraph for a quiz
 // ----------------------------------------------------------------------------
-    text text A
-    text " - "
-    text T
-    paragraph_break
+    - (text A & " - " & T)
     if Img <> ""  then
         text_span
             color "white"
             image 0,0,1,1, Img
+
+GoodColor -> "Darkblue"
+DefaultColor -> "black"
 
 answer_internal "answer", A:integer, T:text, Score:integer, Img:text ->
 // ----------------------------------------------------------------------------
@@ -217,9 +213,9 @@ answer_internal "answer", A:integer, T:text, Score:integer, Img:text ->
 // ----------------------------------------------------------------------------
     text_span
         if Score > 0 then
-            theme_color theme, slide_master, "highlight"
+            color GoodColor
         else
-            theme_color theme, slide_master, "story"
+            color DefaultColor
 
         graph_bullet (text A & " - " & T), real(quiz_score A), real (quiz_total)
 
@@ -232,7 +228,7 @@ open_answer_internal "setup", A:integer, T:text ->
 // ----------------------------------------------------------------------------
 //   Add an open text answer to a quiz
 // ----------------------------------------------------------------------------
-    quiz_set_url := quiz_set_url & "&a" & text A & "=" & quiz_escape T
+    quiz_set_url := quiz_set_url & "&a" & text A & "=" & escT T
 
 
 open_answer_internal "draw", A:integer, T:text ->
@@ -266,7 +262,7 @@ display_open_answer Answer:text ->
 //  Fill the text_flow
 // ----------------------------------------------------------------------------
     text_flow "answer" & page_label,
-        text quiz_filter_open_answer Answer
+        text filter_open_answer Answer
 
 display_open_answer T -> false
 
@@ -453,7 +449,7 @@ graph_bullet Text:text, score:real, total: real ->
     paragraph_break
     anchor
         theme_style theme, slide_master, "bullet"
-        quiz_graph quiz_graph_style, quiz_index, score, total
+        quiz_graph graph_style, quiz_index, score, total
     text Text
 
 
@@ -525,15 +521,19 @@ fullpie T -> false
 //   Mouse management
 //
 // ============================================================================
+push_color T ->
+    color "darkblue"
+release_color T ->
+    color "white"
 
 draw_mouse x:real, y:real, buttons:integer, id ->
 // ----------------------------------------------------------------------------
 //  Draw a circle on (x,y) location
 // ----------------------------------------------------------------------------
     if buttons > 0 then
-        theme_color theme, slide_master, "highlight"
+        push_color id
     else
-        theme_color theme, slide_master, "picture"
+        release_color id
     circle (x - 0.5) * 1000, (y - 0.5) * 1000, 10
 
 draw_mouse "" -> false
@@ -566,9 +566,7 @@ quiz_draw_mouse "draw_mouse" ->
 // ----------------------------------------------------------------------------
     canvas 1000, 1000,
         get_url_data quiz_url & "mouse_data.php?" & prez_code, "draw_mouse", ",", "\n"
-    color "white"
     rectangle 0,0,1000,1000
-
 
 quiz_draw_mouse Style:text ->
 // ----------------------------------------------------------------------------
@@ -585,11 +583,24 @@ quiz_draw_mouse -> quiz_draw_mouse "draw_mouse"
 
 // ============================================================================
 //
+//   Language management
+//
+// ============================================================================
+
+lang -> "fr"
+Fr:text en En:text -> if lang = "en" then En else Fr
+En:text fr Fr:text -> if lang = "fr" then Fr else En
+french Body -> if lang = "fr" then Body
+english Body -> if lang = "en" then Body
+language L:text -> lang := L; refresh 0.1
+
+// ============================================================================
+//
 //   Misc
 //
 // ============================================================================
 
-quiz_escape T:text ->
+escT T:text ->
 // ----------------------------------------------------------------------------
 //    Escape | in questions and answers
 // ----------------------------------------------------------------------------
@@ -600,8 +611,7 @@ quiz_escape T:text ->
             "\|"  -> "\|"
             "[^\|]+" -> regexp_captured 0
 
-
-quiz_filter_open_answer T:text ->
+filter_open_answer T:text ->
 // ----------------------------------------------------------------------------
 //    Escape | in questions and answers
 // ----------------------------------------------------------------------------
@@ -620,26 +630,21 @@ quiz_filter_open_answer T:text ->
 
 prez_name -> "z=" & quiz_name
 prez_code -> prez_name & "&c=" & quiz_presenter_code
-quiz_graph_style -> "barchart"
-quiz_graph_style Style:text -> quiz_graph_style := Style
+graph_style -> "barchart"
 
-quiz_bar_style -> quiz_graph_style "barchart"
-quiz_pie_style -> quiz_graph_style "piechart"
+bargraph -> graph_style := "barchart"
+piegraph -> graph_style := "piechart"
 
-quiz_toggle_result_key Key:text ->
-    on "key:" & Key,
-        quiz_toggle_results
-
-quiz_toggle_results ->
+key "/" ->
     if quiz_phase = "question" then
         quiz_phase := "answer"
     else
         quiz_phase := "question"
 
-quiz_open_text -> "false"
+openText -> "false"
 
 quiz_index -> 0
 quiz_set_url -> ""
 quiz_state -> "setup"
 quiz_phase -> "question"
-quiz_phase P -> quiz_phase := P; refresh 0
+
