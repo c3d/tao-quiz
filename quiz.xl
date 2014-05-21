@@ -11,7 +11,7 @@ module_description
     import_name "Quiz"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.003
+    version 1.004
 
 import "quiz2.xl.crypt"
 
