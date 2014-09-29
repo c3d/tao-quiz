@@ -344,11 +344,12 @@ quiz_reset_question Question:text->
     get_url_text quiz_url & "clear.php?" & prez_code & "&q=" & Question
 
 
-quiz_I_am_sure_I_want_to_reset_all ->
+quiz_reset_all ->
 // ----------------------------------------------------------------------------
-//    Reset the current quiz
+//    Reset the current quiz (all questions answer counts set to 0)
 // ----------------------------------------------------------------------------
     get_url_text quiz_url & "reset.php?" & prez_code
+
 
 
 // ============================================================================
