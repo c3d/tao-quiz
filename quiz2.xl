@@ -31,6 +31,25 @@ import Animate
 //
 // ============================================================================
 
+quiz_ask Question:text, Image:text, Body ->
+// ----------------------------------------------------------------------------
+//   Generate two pages, one with the question, one with the answer
+// ----------------------------------------------------------------------------
+    base_slide "Q: " & Question,
+        title
+            text Question
+        quiz Question, Image,
+            Body
+            quiz_phase "question"
+
+    base_slide "A: " & Question,
+        title
+            text Question
+        quiz Question, Image,
+            Body
+            quiz_phase "answer"
+
+
 quiz_ask Question:text, Body ->
 // ----------------------------------------------------------------------------
 //   Generate two pages, one with the question, one with the answer
@@ -185,10 +204,9 @@ quiz_draw Question:text, Img:text, Body ->
         if Img <> "" then
             line_break
             anchor
-                adjust_position image_width Img
-                adjust_position X:real, Y:real -> translate 0, -Y/2, 0
                 color "white"
-                image 0,0,1,1, Img
+                texture Img
+                rectangle 50, 30, 100, 60
 
     if quiz_open_text = "false" then
         story
