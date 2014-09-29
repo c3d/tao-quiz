@@ -23,6 +23,34 @@ import RegExp
 import Slides
 import Animate
 
+
+
+// ============================================================================
+//
+//    Highest order - Generate question pages
+//
+// ============================================================================
+
+quiz_ask Question:text, Body ->
+// ----------------------------------------------------------------------------
+//   Generate two pages, one with the question, one with the answer
+// ----------------------------------------------------------------------------
+    base_slide "Q: " & Question,
+        title
+            text Question
+        quiz Question,
+            Body
+            quiz_phase "question"
+
+    base_slide "A: " & Question,
+        title
+            text Question
+        quiz Question,
+            Body
+            quiz_phase "answer"
+
+
+
 // ============================================================================
 //
 //  Main question functions
@@ -79,7 +107,7 @@ answer T:text -> answer T, "", 0
 
 open_answer other:text ->
 // ----------------------------------------------------------------------------
-//    Setup a new Open Text Question 
+//    Setup a new Open Text Question
 // ----------------------------------------------------------------------------
     open_answer_internal quiz_state, quiz_index, other
 
