@@ -13,8 +13,680 @@ module_description
     website "http://www.taodyne.com"
     version 1.004
 
-import "quiz2.xl.crypt"
-
 module_description "fr",
     name "module Quiz"
     description "module Quiz proposé par Taodyne"
+
+
+
+import NetworkAccess
+import RegExp
+import Slides
+import Animate
+
+
+// ============================================================================
+//
+//    Highest order - Generate question pages
+//
+// ============================================================================
+
+quiz_ask Question:text, Image:text, Body ->
+// ----------------------------------------------------------------------------
+//   Generate two pages, one with the question, one with the answer
+// ----------------------------------------------------------------------------
+    base_slide "Q: " & Question,
+        title
+            text Question
+        quiz Question, Image,
+            Body
+            quiz_phase "question"
+
+    base_slide "A: " & Question,
+        title
+            text Question
+        quiz Question, Image,
+            Body
+            quiz_phase "answer"
+
+
+quiz_ask Question:text, Body ->
+// ----------------------------------------------------------------------------
+//   Generate two pages, one with the question, one with the answer
+// ----------------------------------------------------------------------------
+    base_slide "Q: " & Question,
+        title
+            text Question
+        quiz Question,
+            Body
+            quiz_phase "question"
+
+    base_slide "A: " & Question,
+        title
+            text Question
+        quiz Question,
+            Body
+            quiz_phase "answer"
+
+
+
+// ============================================================================
+//
+//  Main question functions
+//
+// ============================================================================
+
+quiz Question:text, Img:text, Body ->
+// ----------------------------------------------------------------------------
+//    Setup a new MultiChoice Question with an image in the question
+// ----------------------------------------------------------------------------
+    quiz_open_text := "false"
+    internal_quiz Question, Img, Body
+
+quiz Question:text, Body ->
+// ----------------------------------------------------------------------------
+//    Setup a new MultiChoice Question without image in the question
+// ----------------------------------------------------------------------------
+    quiz Question, "", Body
+
+
+mouse_quiz Question:text, Img:text, Body ->
+// ----------------------------------------------------------------------------
+//    Setup a new Mouse interaction with an image in the question
+// ----------------------------------------------------------------------------
+    quiz_open_text := "true";
+    internal_quiz Question, Img,
+        quiz_set_url := quiz_set_url & "&mouse"
+        Body
+
+mouse_quiz Question:text, Body ->
+// ----------------------------------------------------------------------------
+//    Setup a new Mouse interaction without image in the question
+// ----------------------------------------------------------------------------
+    mouse_quiz Question, "", Body
+
+
+
+// ============================================================================
+//
+//  Proposition of answers for MultiChoice Questions
+//
+// ============================================================================
+
+answer T:text, Img:text, Score:integer ->
+// ----------------------------------------------------------------------------
+//    Add an answer to a Quiz
+// ----------------------------------------------------------------------------
+    answer_internal quiz_state, quiz_index, T, Score, Img
+    quiz_index := quiz_index + 1
+
+answer T:text, Score:integer -> answer T, "", Score
+answer T:text, Img:text -> answer T, Img, 0
+answer T:text -> answer T, "", 0
+
+open_answer other:text ->
+// ----------------------------------------------------------------------------
+//    Setup a new Open Text Question
+// ----------------------------------------------------------------------------
+    open_answer_internal quiz_state, quiz_index, other
+
+open_answer ->
+// ----------------------------------------------------------------------------
+//    Setup a new Open Text Question with an image in the question
+// ----------------------------------------------------------------------------
+    open_answer ""
+
+
+// ============================================================================
+//
+//  Internal functions for quiz setup
+//
+// ============================================================================
+
+internal_quiz Question:text, Img:text, Body ->
+// ----------------------------------------------------------------------------
+//    Setup a new quiz
+// ----------------------------------------------------------------------------
+    // Initialize the state of the new question
+    quiz_setup Question, Img, Body
+
+    if quiz_phase = "question" then
+        // Draw the quiz
+        quiz_draw Question, Img, Body
+    else
+        // Draw the quiz
+        quiz_answers Question, Img, Body
+
+
+internal_quiz Question:text, Body ->
+// ----------------------------------------------------------------------------
+//    Setup a new quiz with no image
+// ----------------------------------------------------------------------------
+    internal_quiz Question, "", Body
+
+
+quiz_setup Question:text, Img:text, Body ->
+// ----------------------------------------------------------------------------
+//    Setup a new Quiz
+// ----------------------------------------------------------------------------
+    locally
+        if page_time < 1 then
+            quiz_phase := "question"
+            quiz_index := 1
+            quiz_set_url := quiz_url & "set.php?" & prez_code & "&q=" & quiz_escape Question & "|" & Img
+            quiz_state := "setup"
+
+            // Evaluate body
+            Body
+
+            // Request URL and move to next page
+            get_url_text quiz_set_url
+
+        else
+            no_refresh_on TimerEvent
+
+
+quiz_option T:text ->
+// ----------------------------------------------------------------------------
+//   Send an option directly to the server
+// ----------------------------------------------------------------------------
+    quiz_set_url := quiz_set_url & "&" & T
+
+
+image_width Img:text -> image_size Img at 2
+
+quiz_draw Question:text, Img:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default drawing for a quiz
+// ----------------------------------------------------------------------------
+    title
+        text Question
+        if Img <> "" then
+            line_break
+            anchor
+                color "white"
+                texture Img
+                rectangle 50, 30, 100, 60
+
+    if quiz_open_text = "false" then
+        story
+            quiz_index := 1
+            quiz_state := "draw"
+            Body
+            time
+    else
+        locally
+            quiz_index := 1
+            quiz_state := "draw"
+            time
+            Body
+
+
+// ============================================================================
+//
+//  Internal function to support answers
+//
+// ============================================================================
+
+quiz_answers Question:text, Img:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default drawing for a quiz
+// ----------------------------------------------------------------------------
+    quiz_draw Question, Img,
+        quiz_state := "answer"
+        Body
+
+
+answer_internal "setup", A:integer, T:text, Score:integer, Img:text ->
+// ----------------------------------------------------------------------------
+//   Add an answer to a quiz
+// ----------------------------------------------------------------------------
+    quiz_set_url := quiz_set_url & "&a" & text A & "=" & text Score & "|" & quiz_escape T & "|" & Img
+
+
+answer_internal "draw", A:integer, T:text, Score:integer, Img:text ->
+// ----------------------------------------------------------------------------
+//   Draw a paragraph for a quiz
+// ----------------------------------------------------------------------------
+    text text A
+    text " - "
+    text T
+    paragraph_break
+    if Img <> ""  then
+        text_span
+            color "white"
+            image 0,0,1,1, Img
+
+answer_internal "answer", A:integer, T:text, Score:integer, Img:text ->
+// ----------------------------------------------------------------------------
+//   Draw a paragraph for a quiz
+// ----------------------------------------------------------------------------
+    text_span
+        if Score > 0 then
+            theme_color theme, slide_master, "highlight"
+        else
+            theme_color theme, slide_master, "story"
+
+        graph_bullet (text A & " - " & T), real(quiz_score A), real (quiz_total)
+
+        if Img <> ""  then
+            color "white"
+            image 0,0,1,1, Img
+
+
+open_answer_internal "setup", A:integer, T:text ->
+// ----------------------------------------------------------------------------
+//   Add an open text answer to a quiz
+// ----------------------------------------------------------------------------
+    quiz_set_url := quiz_set_url & "&a" & text A & "=" & quiz_escape T
+
+
+open_answer_internal "draw", A:integer, T:text ->
+// ----------------------------------------------------------------------------
+//   Draw a paragraph for a quiz
+// ----------------------------------------------------------------------------
+    if T <> "" then
+        answer_internal "draw", A, T, 0, ""
+
+
+open_answer_internal "answer", A:integer, T:text ->
+// ----------------------------------------------------------------------------
+//   Draw a paragraph for a quiz
+// ----------------------------------------------------------------------------
+    if T <> "" then
+        answer_internal "answer", A, T, 0, ""
+    paragraph_break
+    // Draw each answer
+    get_url_data quiz_url & "value.php?" & prez_code, "display_open_answer", "", ","
+    text_flow "answer" & page_label
+
+
+display_open_answer "" ->
+// ----------------------------------------------------------------------------
+//  Nothing drawn for empty lines
+// ----------------------------------------------------------------------------
+    false
+
+display_open_answer Answer:text ->
+// ----------------------------------------------------------------------------
+//  Fill the text_flow
+// ----------------------------------------------------------------------------
+    text_flow "answer" & page_label,
+        text quiz_filter_open_answer Answer
+
+display_open_answer T -> false
+
+
+
+// ============================================================================
+//
+//  Functions to get Quiz/Result information
+//
+// ============================================================================
+quiz_score I:integer ->
+// ----------------------------------------------------------------------------
+//   Return the score for the given index
+// ----------------------------------------------------------------------------
+    get_url_text quiz_url & "value.php?" & prez_code & "&a=" & text I
+
+
+quiz_total ->
+// ----------------------------------------------------------------------------
+//   Return the total number of answers
+// ----------------------------------------------------------------------------
+    get_url_text quiz_url & "value.php?" & prez_code & "&total"
+
+
+quiz_reset_question Question:text->
+// ----------------------------------------------------------------------------
+//    Reset the current question
+// ----------------------------------------------------------------------------
+    get_url_text quiz_url & "clear.php?" & prez_code & "&q=" & Question
+
+
+quiz_reset_all ->
+// ----------------------------------------------------------------------------
+//    Reset the current quiz (all questions answer counts set to 0)
+// ----------------------------------------------------------------------------
+    get_url_text quiz_url & "reset.php?" & prez_code
+
+
+
+// ============================================================================
+//
+//  Functions to set generic behavior
+//
+// ============================================================================
+quiz_deactivate_on_answer Time:integer ->
+// ----------------------------------------------------------------------------
+//   Stop the possibility to users to answer, but the result is still showable
+// ----------------------------------------------------------------------------
+    after Time,
+        deactivate quiz_phase
+
+
+quiz_deactivate_on_answer ->
+// ----------------------------------------------------------------------------
+//   Stop the possibility to users to answer, but the result is still showable
+// ----------------------------------------------------------------------------
+    deactivate quiz_phase
+
+
+deactivate "answer" ->
+     quiz_set_url := quiz_set_url & "&deactivate"
+deactivate T -> false
+
+
+
+// ============================================================================
+//
+//  Functions to set quiz question behavior
+//
+// ============================================================================
+quiz_set_unique ->
+// ----------------------------------------------------------------------------
+//    'unique' mode: for each user, only the first answer is registered
+// ----------------------------------------------------------------------------
+    quiz_set_url := quiz_set_url & "&unique"
+
+
+quiz_set_last ->
+// ----------------------------------------------------------------------------
+//    'last' mode: for each user, only the last answer is registered
+// ----------------------------------------------------------------------------
+    quiz_set_url := quiz_set_url & "&last"
+
+
+quiz_set_multiple ->
+// ----------------------------------------------------------------------------
+//   'multiple' mode: for each user, all answers are registered
+// ----------------------------------------------------------------------------
+    quiz_set_url := quiz_set_url & "&multiple"
+
+
+quiz_set_user_feedback T:text  ->
+// ----------------------------------------------------------------------------
+//    User's feedback choice
+// ----------------------------------------------------------------------------
+     quiz_set_url := quiz_set_url & "&userfeedback=" & T
+// Possible values for T are:
+// no   -> no feedback (default value)
+// self -> its own answer
+// stat -> statistic on all answers from all users
+
+
+// ============================================================================
+//
+//  Functions to set MousePad behavior
+//
+// ============================================================================
+
+quiz_set_mouse_pad Square:text, T:text, Image:text ->
+// ----------------------------------------------------------------------------
+//    Configuration for squares of the mouse pad
+// ----------------------------------------------------------------------------
+     quiz_set_url := quiz_set_url & "&" & Square & "=" & T & "|" & Image
+// The mouse pad is made of 9 squares. Except the middle one, they are each
+// settable with text and image. Square is combination of [tmb][lcr] for
+// Top, Middle, Bottom and Left, Center, Right.
+
+quiz_set_mouse_pad T ->
+    debug T
+
+
+// ============================================================================
+//
+//  Functions to draw a graph in front of each answer
+//
+// ============================================================================
+quiz_graph "barchart", Index:integer, Value:real, Total:real ->
+// ----------------------------------------------------------------------------
+//   Draw a graph item
+// ----------------------------------------------------------------------------
+    locally
+        translatex -25
+        translatey 7
+
+        light 0, false
+        text_box -10, 25, 100, 50,
+            line_color "font"
+            color "font"
+            align 0.5
+            vertical_align 0.5
+            font "Arial", 20
+            text text Value
+        rotatez -65
+        rotatey 75
+        colorpie Index
+        line_width 1
+        cylinder 0, 0, 1 + 3 * Value, 10, 10, 3 + 6 * Value
+
+
+quiz_graph "piechart", Index:integer, Value:real, Total:real  ->
+// ----------------------------------------------------------------------------
+//   Draw a pie chart item
+// ----------------------------------------------------------------------------
+  locally
+    translatex -25
+    translatey 7
+
+    locally
+        light 0, false
+        text_box -10, 30, 100, 30,
+            align 0.5
+            vertical_align 0.5
+            color "black"
+            font "Arial", 20
+            text text Value
+    rotatez 15
+    rotatey 45
+    locally
+        light 0, false
+        line_width 1
+        line_color "black"
+        color "transparent"
+        circle 0, 0, 20
+        colorpie Index
+        if Total > 0.0 then
+            cylinder 0, 0, -5, 20, 20, 10
+            ellipse_sector 0, 0, 40, 40, 0, 360.0 * (Value / Total)
+
+
+graph_bullet Text:text, score:real, total: real ->
+// ----------------------------------------------------------------------------
+//   Draw the graph as a bullet level 1
+// ----------------------------------------------------------------------------
+    theme_style theme, slide_master, "story", 1
+    paragraph_break
+    anchor
+        theme_style theme, slide_master, "bullet"
+        quiz_graph quiz_graph_style, quiz_index, score, total
+    text Text
+
+
+colorpie 5 -> color "red"; line_color "red"
+colorpie 4 -> color "blue"; line_color "blue"
+colorpie 3 -> color "green"; line_color "green"
+colorpie 2 -> color "orange"; line_color "orange"
+colorpie 1 -> color "magenta"; line_color "magenta"
+colorpie 6 -> color "cyan"; line_color "cyan"
+colorpie T -> color "gray"; line_color "darkgray"
+
+
+// ============================================================================
+//
+//  Functions to draw a Pie to summup all answers
+//
+// ============================================================================
+total_answer_graph -> fullpie quiz_state
+
+fullpie "answer" ->
+// ----------------------------------------------------------------------------
+//   Draw the full pie chart and the number of received answers
+// ----------------------------------------------------------------------------
+    paragraph_break
+    floating
+        draw_start -> 0.0
+        v -> 0.0
+        Total ->real( quiz_total )
+        t -> if (Total > 0.0) then Total else 1.0
+        draw_pie idx:integer ->
+            v := (real (quiz_score idx)) / t
+            colorpie idx
+            ellipse_sector 0, 0, 100, 100, draw_start, 360.0 * v
+            draw_start := draw_start + (360.0 * v)
+
+        translatex 500
+        translatey -400
+        draw_start := 0.0
+        draw_pie with 1..quiz_index
+        text_box 250, 0, 500, 70,
+            locally
+                color "font"
+                line_color "font"
+                text "   "
+                text text Total
+                text " answers" fr " réponses"
+
+
+fullpie "draw" ->
+// ----------------------------------------------------------------------------
+//   Draw the number of received answers
+// ----------------------------------------------------------------------------
+    paragraph_break
+    floating
+        translatex 500
+        translatey -400
+        text_box 250, 0, 500, 70,
+            color "font"
+            line_color "font"
+            text quiz_total
+            text " answers" fr " réponses"
+
+
+fullpie T -> false
+
+
+// ============================================================================
+//
+//   Mouse management
+//
+// ============================================================================
+
+draw_mouse x:real, y:real, buttons:integer, id ->
+// ----------------------------------------------------------------------------
+//  Draw a circle on (x,y) location
+// ----------------------------------------------------------------------------
+    if buttons > 0 then
+        theme_color theme, slide_master, "highlight"
+    else
+        theme_color theme, slide_master, "picture"
+    circle (x - 0.5) * 1000, (y - 0.5) * 1000, 10
+
+draw_mouse "" -> false
+
+draw_mouse button:text /*, id*/ ->
+    LAST_BUTTON = button
+
+draw_mouse Other -> false
+
+text_mouse x:real, y:real, buttons:integer, id:integer ->
+// ----------------------------------------------------------------------------
+//  Write x and y values on the screen
+// ----------------------------------------------------------------------------
+    if buttons > 0 then
+        color "darkblue"
+    else
+        color "white"
+    text "id = " & text id
+    text "     x = " & text x
+    text " and y =  " & text y
+    paragraph_break
+
+text_mouse T-> false
+
+LAST_BUTTON -> "none"
+
+quiz_draw_mouse "draw_mouse" ->
+// ----------------------------------------------------------------------------
+//  Draw mouses location on the screen
+// ----------------------------------------------------------------------------
+    canvas 1000, 1000,
+        get_url_data quiz_url & "mouse_data.php?" & prez_code, "draw_mouse", ",", "\n"
+    color "white"
+    rectangle 0,0,1000,1000
+
+
+quiz_draw_mouse Style:text ->
+// ----------------------------------------------------------------------------
+//  Generic mouse handling
+// ----------------------------------------------------------------------------
+    get_url_data quiz_url & "mouse_data.php?" & prez_code, Style, ",", "\n"
+
+
+quiz_draw_mouse -> quiz_draw_mouse "draw_mouse"
+// ----------------------------------------------------------------------------
+//  Default mouse handling
+// ----------------------------------------------------------------------------
+
+
+// ============================================================================
+//
+//   Misc
+//
+// ============================================================================
+
+quiz_escape T:text ->
+// ----------------------------------------------------------------------------
+//    Escape | in questions and answers
+// ----------------------------------------------------------------------------
+    if T = "" then
+        ""
+    else
+        regexp_parse_text T,
+            "\|"  -> "\|"
+            "[^\|]+" -> regexp_captured 0
+
+
+quiz_filter_open_answer T:text ->
+// ----------------------------------------------------------------------------
+//    Escape | in questions and answers
+// ----------------------------------------------------------------------------
+    if T = "" then
+        ""
+    else
+        regexp_parse_text T,
+            <<%22(.*)%22\n>> -> (regexp_captured 1) & " "
+            ""
+
+// ============================================================================
+//
+//   Variable settings
+//
+// ============================================================================
+
+prez_name -> "z=" & quiz_name
+prez_code -> prez_name & "&c=" & quiz_presenter_code
+quiz_graph_style -> "barchart"
+quiz_graph_style Style:text -> quiz_graph_style := Style
+
+quiz_bar_style -> quiz_graph_style "barchart"
+quiz_pie_style -> quiz_graph_style "piechart"
+
+quiz_toggle_result_key Key:text ->
+    on "key:" & Key,
+        quiz_toggle_results
+
+quiz_toggle_results ->
+    if quiz_phase = "question" then
+        quiz_phase := "answer"
+    else
+        quiz_phase := "question"
+
+quiz_open_text -> "false"
+
+quiz_index -> 0
+quiz_set_url -> ""
+quiz_state -> "setup"
+quiz_phase -> "question"
+quiz_phase P -> quiz_phase := P; refresh 0
