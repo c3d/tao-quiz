@@ -306,7 +306,7 @@ quiz_deactivate_on_answer ();
  *
  * Au lieu d'attendre une réponse en un click, on peut faire afficher une souris
  * sur l'écran de l'utilisateur, et ses mouvements sont envoyés à
- * Tao presentations.
+ * Tao3D.
  *
  * L'espace souris est constitué de 9 carrés. Excepté celui du centre qui est
  * réservé à la souris, les carrés sont configurables.
